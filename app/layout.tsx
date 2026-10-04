@@ -2,8 +2,11 @@ import './globals.css';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Escuela de Calidad 2026',
-  description: 'Panel de asistencia y notas para la Escuela de Calidad.',
+  title: 'Escuela de Calidad 2026 | MiRed IPS',
+  description: 'Plataforma institucional para programas de calidad y seguridad del paciente.',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

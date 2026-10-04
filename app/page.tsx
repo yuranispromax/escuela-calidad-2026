@@ -1,251 +1,217 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 
-type AttendanceStatus = 'Presente' | 'Tarde' | 'Ausente';
-
-type Student = {
+interface User {
   id: string;
-  name: string;
-  group: string;
   email: string;
-  attendance: { date: string; status: AttendanceStatus }[];
-  notes: string[];
-};
+  name: string;
+  role: 'admin' | 'instructor' | 'student';
+}
 
-type DashboardData = {
-  totalStudents: number;
-  totalPresentes: number;
-  totalTardes: number;
-  totalAusentes: number;
-  totalNotas: number;
-  students: Student[];
-};
+interface Module {
+  id: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  status: 'upcoming' | 'active' | 'completed';
+  instructorId: string;
+  students: string[];
+}
 
-const initialStudent = {
-  name: '',
-  group: '',
-  email: '',
-};
-
-export default function HomePage() {
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
-  const [newStudent, setNewStudent] = useState(initialStudent);
-  const [attendanceForm, setAttendanceForm] = useState({ studentId: '', status: 'Presente' as AttendanceStatus });
-  const [noteForm, setNoteForm] = useState({ studentId: '', text: '' });
-  const [loading, setLoading] = useState(false);
-
-  const fetchDashboard = async () => {
-    const response = await fetch('/api/metrics');
-    const data = await response.json();
-    setDashboard(data);
-  };
+export default function DashboardPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [showNewModuleForm, setShowNewModuleForm] = useState(false);
+  const [newModule, setNewModule] = useState({ title: '', description: '', startDate: '', endDate: '' });
 
   useEffect(() => {
-    fetchDashboard();
-  }, []);
+    const stored = localStorage.getItem('user');
+    if (!stored) {
+      router.push('/auth/login');
+      return;
+    }
 
-  const handleStudentSubmit = async (event: React.FormEvent) => {
+    try {
+      const parsed = JSON.parse(stored) as User;
+      setUser(parsed);
+      fetchModules();
+    } catch {
+      router.push('/auth/login');
+    }
+  }, [router]);
+
+  const fetchModules = async () => {
+    const response = await fetch('/api/modules');
+    if (response.ok) {
+      const data = await response.json();
+      setModules(data);
+    }
+  };
+
+  const handleLogout = () => {
+    Cookies.remove('token');
+    localStorage.removeItem('user');
+    router.push('/auth/login');
+  };
+
+  const handleCreateModule = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!newStudent.name || !newStudent.group) return;
+    if (!user) return;
 
-    setLoading(true);
-    const response = await fetch('/api/students', {
+    const payload = {
+      ...newModule,
+      instructorId: user.id,
+      students: [],
+      status: 'upcoming',
+      materials: [],
+      evaluations: [],
+    };
+
+    const response = await fetch('/api/modules', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newStudent),
+      body: JSON.stringify(payload),
     });
 
     if (response.ok) {
-      setNewStudent(initialStudent);
-      await fetchDashboard();
+      setNewModule({ title: '', description: '', startDate: '', endDate: '' });
+      setShowNewModuleForm(false);
+      await fetchModules();
     }
-    setLoading(false);
   };
 
-  const handleAttendanceSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!attendanceForm.studentId) return;
+  if (!user) return null;
 
-    setLoading(true);
-    const response = await fetch('/api/attendance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(attendanceForm),
-    });
-
-    if (response.ok) {
-      setAttendanceForm({ studentId: '', status: 'Presente' });
-      await fetchDashboard();
-    }
-    setLoading(false);
-  };
-
-  const handleNoteSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!noteForm.studentId || !noteForm.text.trim()) return;
-
-    setLoading(true);
-    const response = await fetch('/api/notes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(noteForm),
-    });
-
-    if (response.ok) {
-      setNoteForm({ studentId: '', text: '' });
-      await fetchDashboard();
-    }
-    setLoading(false);
-  };
-
-  const statusColors: Record<AttendanceStatus, string> = {
-    Presente: '#22c55e',
-    Tarde: '#f59e0b',
-    Ausente: '#ef4444',
-  };
+  const stats = [
+    { label: 'Módulos totales', value: modules.length, type: 'primary' },
+    { label: 'Activos', value: modules.filter((m) => m.status === 'active').length, type: 'success' },
+    { label: 'Próximos', value: modules.filter((m) => m.status === 'upcoming').length, type: 'warning' },
+  ];
 
   return (
-    <main className="container">
-      <header className="hero">
-        <div>
-          <p className="eyebrow">MiRed IPS</p>
-          <h1>Escuela de Calidad 2026</h1>
-          <p className="subtitle">Control de asistencia, participación y notas del programa Yellow Belt.</p>
+    <>
+      <header>
+        <div className="container">
+          <div className="header-content">
+            <div className="logo">
+              <img src="/assets/logos/mired-logo.svg" alt="MiRed IPS" />
+              <span>Escuela de Calidad</span>
+            </div>
+
+            <ul className="nav-menu">
+              <li><a href="#">Dashboard</a></li>
+              <li><a href="#">Módulos</a></li>
+              <li><a href="#">Academia</a></li>
+            </ul>
+
+            <div className="user-menu">
+              <span>{user.name}</span>
+              <button className="logout-btn" onClick={handleLogout}>Cerrar sesión</button>
+            </div>
+          </div>
         </div>
-        <button className="demo-button" onClick={() => fetch('/api/seed', { method: 'POST' }).then(fetchDashboard)}>
-          Cargar datos demo
-        </button>
       </header>
 
-      {dashboard ? (
-        <>
-          <section className="stats-grid">
-            <article className="stat-card">
-              <span>Estudiantes</span>
-              <strong>{dashboard.totalStudents}</strong>
-            </article>
-            <article className="stat-card">
-              <span>Presentes</span>
-              <strong>{dashboard.totalPresentes}</strong>
-            </article>
-            <article className="stat-card">
-              <span>Tardes</span>
-              <strong>{dashboard.totalTardes}</strong>
-            </article>
-            <article className="stat-card">
-              <span>Ausentes</span>
-              <strong>{dashboard.totalAusentes}</strong>
-            </article>
-            <article className="stat-card accent">
-              <span>Notas registradas</span>
-              <strong>{dashboard.totalNotas}</strong>
-            </article>
-          </section>
+      <main className="dashboard">
+        <div className="container">
+          <div className="dashboard-header">
+            <h1>Bienvenido, {user.name}</h1>
+            <p>Panel institucional para la gestión académica</p>
+          </div>
 
-          <section className="panel-grid">
-            <form className="panel" onSubmit={handleStudentSubmit}>
-              <h2>Nuevo estudiante</h2>
-              <input
-                placeholder="Nombre completo"
-                value={newStudent.name}
-                onChange={(event) => setNewStudent({ ...newStudent, name: event.target.value })}
-              />
-              <input
-                placeholder="Grupo / cohorte"
-                value={newStudent.group}
-                onChange={(event) => setNewStudent({ ...newStudent, group: event.target.value })}
-              />
-              <input
-                type="email"
-                placeholder="Correo electrónico"
-                value={newStudent.email}
-                onChange={(event) => setNewStudent({ ...newStudent, email: event.target.value })}
-              />
-              <button disabled={loading} type="submit">Guardar estudiante</button>
-            </form>
+          <div className="stats-grid">
+            {stats.map((stat, index) => (
+              <div key={index} className={`stat-card ${stat.type}`}>
+                <div className="stat-label">{stat.label}</div>
+                <div className="stat-value">{stat.value}</div>
+              </div>
+            ))}
+          </div>
 
-            <form className="panel" onSubmit={handleAttendanceSubmit}>
-              <h2>Registrar asistencia</h2>
-              <select
-                value={attendanceForm.studentId}
-                onChange={(event) => setAttendanceForm({ ...attendanceForm, studentId: event.target.value })}
-              >
-                <option value="">Selecciona un estudiante</option>
-                {dashboard.students.map((student) => (
-                  <option key={student.id} value={student.id}>
-                    {student.name}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={attendanceForm.status}
-                onChange={(event) => setAttendanceForm({ ...attendanceForm, status: event.target.value as AttendanceStatus })}
-              >
-                <option value="Presente">Presente</option>
-                <option value="Tarde">Tarde</option>
-                <option value="Ausente">Ausente</option>
-              </select>
-              <button disabled={loading} type="submit">Guardar asistencia</button>
-            </form>
-
-            <form className="panel" onSubmit={handleNoteSubmit}>
-              <h2>Agregar nota</h2>
-              <select
-                value={noteForm.studentId}
-                onChange={(event) => setNoteForm({ ...noteForm, studentId: event.target.value })}
-              >
-                <option value="">Selecciona un estudiante</option>
-                {dashboard.students.map((student) => (
-                  <option key={student.id} value={student.id}>
-                    {student.name}
-                  </option>
-                ))}
-              </select>
-              <textarea
-                placeholder="Escribe la observación o nota del estudiante..."
-                rows={4}
-                value={noteForm.text}
-                onChange={(event) => setNoteForm({ ...noteForm, text: event.target.value })}
-              />
-              <button disabled={loading} type="submit">Guardar nota</button>
-            </form>
-          </section>
-
-          <section className="list-panel">
-            <h2>Listado de estudiantes</h2>
-            <div className="student-list">
-              {dashboard.students.map((student) => {
-                const lastAttendance = student.attendance.at(-1)?.status ?? 'Ausente';
-
-                return (
-                  <article key={student.id} className="student-item">
-                    <div>
-                      <h3>{student.name}</h3>
-                      <p>{student.group}</p>
-                      <small>{student.email}</small>
+          {(user.role === 'admin' || user.role === 'instructor') && (
+            <div style={{ marginBottom: '28px' }}>
+              {!showNewModuleForm ? (
+                <button className="btn-primary" style={{ width: '220px' }} onClick={() => setShowNewModuleForm(true)}>
+                  + Nuevo módulo
+                </button>
+              ) : (
+                <div className="table-container" style={{ padding: '20px' }}>
+                  <h2 style={{ marginBottom: '18px' }}>Crear módulo</h2>
+                  <form onSubmit={handleCreateModule}>
+                    <div className="form-group">
+                      <label>Título</label>
+                      <input
+                        type="text"
+                        value={newModule.title}
+                        onChange={(e) => setNewModule({ ...newModule, title: e.target.value })}
+                        placeholder="Yellow Belt, Green Belt, Diplomado..."
+                      />
                     </div>
-                    <div className="student-meta">
-                      <span className="tag" style={{ background: statusColors[lastAttendance] }}>
-                        {lastAttendance}
-                      </span>
-                      <ul>
-                        {student.notes.length ? (
-                          student.notes.map((note, index) => <li key={`${student.id}-${index}`}>{note}</li>)
-                        ) : (
-                          <li>Sin observaciones</li>
-                        )}
-                      </ul>
+                    <div className="form-group">
+                      <label>Descripción</label>
+                      <textarea
+                        value={newModule.description}
+                        onChange={(e) => setNewModule({ ...newModule, description: e.target.value })}
+                        rows={3}
+                        placeholder="Descripción del programa"
+                      />
                     </div>
-                  </article>
-                );
-              })}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div className="form-group">
+                        <label>Fecha de inicio</label>
+                        <input
+                          type="date"
+                          value={newModule.startDate}
+                          onChange={(e) => setNewModule({ ...newModule, startDate: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Fecha de fin</label>
+                        <input
+                          type="date"
+                          value={newModule.endDate}
+                          onChange={(e) => setNewModule({ ...newModule, endDate: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button type="submit" className="btn-primary" style={{ width: 'auto' }}>Guardar</button>
+                      <button type="button" className="btn-secondary" onClick={() => setShowNewModuleForm(false)}>Cancelar</button>
+                    </div>
+                  </form>
+                </div>
+              )}
             </div>
-          </section>
-        </>
-      ) : (
-        <p className="empty-state">Cargando información...</p>
-      )}
-    </main>
+          )}
+
+          <h2>Módulos</h2>
+          <div className="modules-grid">
+            {modules.map((module) => (
+              <div key={module.id} className="module-card">
+                <div className="module-header">
+                  <h3>{module.title}</h3>
+                  <div className="module-meta">{module.startDate} - {module.endDate}</div>
+                </div>
+                <div className="module-body">
+                  <span className={`module-status status-${module.status}`}>{module.status}</span>
+                  <p className="module-description">{module.description}</p>
+                  <div className="module-footer">
+                    <button className="btn-accent">Ver detalles</button>
+                    {(user.role === 'admin' || user.role === 'instructor') && (
+                      <button className="btn-secondary">Editar</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    </>
   );
 }

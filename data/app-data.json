@@ -1,44 +1,47 @@
-{
-  "students": [
-    {
-      "id": "stu-1",
-      "name": "Ana Gómez",
-      "group": "Cohorte 01",
-      "email": "ana@mired.com",
-      "attendance": [
-        { "date": "2026-10-01", "status": "Presente" },
-        { "date": "2026-10-02", "status": "Presente" }
-      ],
-      "notes": [
-        "Participó con buena actitud en la sesión de mapeo de procesos.",
-        "Necesita reforzar el análisis de causas raíz."
-      ]
-    },
-    {
-      "id": "stu-2",
-      "name": "Luis Pérez",
-      "group": "Cohorte 01",
-      "email": "luis@mired.com",
-      "attendance": [
-        { "date": "2026-10-01", "status": "Tarde" },
-        { "date": "2026-10-02", "status": "Presente" }
-      ],
-      "notes": [
-        "Avanza bien en la práctica de mejora continua."
-      ]
-    },
-    {
-      "id": "stu-3",
-      "name": "Sofía Ramírez",
-      "group": "Cohorte 02",
-      "email": "sofia@mired.com",
-      "attendance": [
-        { "date": "2026-10-01", "status": "Ausente" },
-        { "date": "2026-10-02", "status": "Presente" }
-      ],
-      "notes": [
-        "Se reincorporó al curso con avances claros."
-      ]
-    }
-  ]
-}
+# Escuela de Calidad 2026
+
+Aplicación institucional para gestionar cursos, módulos, evaluaciones, trabajos y certificados para la Escuela de Calidad de MiRed IPS.
+
+## Tecnologías
+- Next.js
+- React
+- TypeScript
+- Autenticación con JWT
+- Almacenamiento local JSON para iniciar sin SQL
+
+## Inicio rápido
+
+```bash
+npm install
+npm run dev
+```
+
+Accede a:
+
+```text
+http://localhost:3000/auth/login
+```
+
+## Credenciales de prueba
+
+- Admin: admin@mired.com / admin123
+- Instructor: instructor@mired.com / instructor123
+- Estudiante: student@mired.com / student123
+
+## Estructura
+
+- app/auth/login: pantalla de acceso
+- app/dashboard: panel principal
+- app/api: endpoints para módulos y autenticación
+- lib/auth.ts: login y JWT
+- lib/store.ts: almacenamiento de datos
+- public/assets: logos y recursos institucionales
+
+## Branding institucional
+
+- Azul: #075D7D
+- Verde: #39A835
+- Amarillo: #FFD417
+- Rojo: #FF0000
+
+Este proyecto usa un modelo base para continuar con la versión institucional avanzada y luego migrar a PostgreSQL/Supabase si se requiere.

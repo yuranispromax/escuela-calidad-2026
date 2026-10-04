@@ -1,0 +1,51 @@
+{
+  "users": [
+    {
+      "id": "user-1",
+      "email": "admin@mired.com",
+      "name": "Administrador MiRed",
+      "role": "admin",
+      "password": "$2a$10$M4X1rL8Q1RziW7W3Qy3cOeD1s6NNn0ABd3QpIuSe8gP5B2sOOTmH2"
+    },
+    {
+      "id": "user-2",
+      "email": "instructor@mired.com",
+      "name": "Instructor Yellow Belt",
+      "role": "instructor",
+      "password": "$2a$10$P8.t35JfK5GrLn5n0Msnzu0ZY7C0ZbM0mK1H0JQ8v.X2RZ5R1mJRe"
+    },
+    {
+      "id": "user-3",
+      "email": "student@mired.com",
+      "name": "Estudiante Ejemplo",
+      "role": "student",
+      "password": "$2a$10$8V4rrI4R4XzQk5whGzI9UuJx0VTd3w.MBJHk45EXr8B.0H0Lg1cN2"
+    }
+  ],
+  "modules": [
+    {
+      "id": "mod-1",
+      "title": "Yellow Belt",
+      "description": "Módulo de mejora continua orientado a Lean Six Sigma.",
+      "startDate": "2026-10-10",
+      "endDate": "2026-11-30",
+      "instructorId": "user-2",
+      "students": ["user-3"],
+      "status": "active",
+      "materials": ["Diapositivas iniciales", "Guía de trabajo"],
+      "evaluations": ["Evaluación inicial"]
+    },
+    {
+      "id": "mod-2",
+      "title": "Seguridad del Paciente",
+      "description": "Diplomado institucional en seguridad del paciente.",
+      "startDate": "2026-11-01",
+      "endDate": "2026-12-15",
+      "instructorId": "user-2",
+      "students": ["user-3"],
+      "status": "upcoming",
+      "materials": ["Material de seguridad", "Casos clínicos"],
+      "evaluations": ["Caso clínico final"]
+    }
+  ]
+}
