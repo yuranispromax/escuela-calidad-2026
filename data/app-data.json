@@ -1,0 +1,44 @@
+{
+  "students": [
+    {
+      "id": "stu-1",
+      "name": "Ana Gómez",
+      "group": "Cohorte 01",
+      "email": "ana@mired.com",
+      "attendance": [
+        { "date": "2026-10-01", "status": "Presente" },
+        { "date": "2026-10-02", "status": "Presente" }
+      ],
+      "notes": [
+        "Participó con buena actitud en la sesión de mapeo de procesos.",
+        "Necesita reforzar el análisis de causas raíz."
+      ]
+    },
+    {
+      "id": "stu-2",
+      "name": "Luis Pérez",
+      "group": "Cohorte 01",
+      "email": "luis@mired.com",
+      "attendance": [
+        { "date": "2026-10-01", "status": "Tarde" },
+        { "date": "2026-10-02", "status": "Presente" }
+      ],
+      "notes": [
+        "Avanza bien en la práctica de mejora continua."
+      ]
+    },
+    {
+      "id": "stu-3",
+      "name": "Sofía Ramírez",
+      "group": "Cohorte 02",
+      "email": "sofia@mired.com",
+      "attendance": [
+        { "date": "2026-10-01", "status": "Ausente" },
+        { "date": "2026-10-02", "status": "Presente" }
+      ],
+      "notes": [
+        "Se reincorporó al curso con avances claros."
+      ]
+    }
+  ]
+}
